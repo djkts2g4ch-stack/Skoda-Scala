@@ -152,7 +152,7 @@
 
 <div id="help">
   <h3>Commandes</h3>
-  <b>↑/Z</b> accélérer · <b>↓/S</b> freiner / marche arrière<br>
+  <b>↑/Z</b> accélérer · <b>↓/S</b> freiner (maintenir à l'arrêt pour la marche arrière)<br>
   <b>←/→</b> ou <b>Q/D</b> diriger · <b>Espace</b> frein à main<br>
   <b>C</b> caméra de recul · <b>V</b> changer de vue<br>
   <b>Souris</b> : tourner la tête (vue conducteur), orbiter (vue 3D)<br>
@@ -206,7 +206,7 @@ scene.add(sun); scene.add(sun.target);
 /* ============ MATÉRIAUX ============ */
 const M = {
   body: new THREE.MeshStandardMaterial({ color: SPECS.color, metalness: 0.75, roughness: 0.32 }),
-  glass: new THREE.MeshStandardMaterial({ color: 0x11171d, metalness: 0.6, roughness: 0.12, side: THREE.DoubleSide }),
+  glass: new THREE.MeshStandardMaterial({ color: 0x2a3a44, metalness: 0.85, roughness: 0.06, side: THREE.DoubleSide, transparent: true, opacity: 0.28, depthWrite: false }),
   dark: new THREE.MeshStandardMaterial({ color: 0x17191c, metalness: 0.4, roughness: 0.6 }),
   tire: new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.95 }),
   rim: new THREE.MeshStandardMaterial({ color: 0xb9bec4, metalness: 0.9, roughness: 0.3 }),
@@ -319,6 +319,18 @@ function buildScala() {
     seat.position.set(sx, 0.52, -0.02);
     inter.add(seat);
   }
+  for (const side of [-1, 1]) {
+    const aP = box(0.07, 0.92, 0.09, M.dark, side * 0.80, 1.21, 0.58, inter);
+    aP.rotation.x = -1.02;
+    box(0.05, 0.46, 0.09, M.dark, side * 0.80, 1.21, -0.35, inter);
+    const cP = box(0.07, 0.62, 0.09, M.dark, side * 0.78, 1.20, -1.18, inter);
+    cP.rotation.x = 0.70;
+    box(0.07, 0.42, 1.30, M.dark, side * 0.78, 0.74, 0.05, inter);
+  }
+  box(0.05, 0.03, 0.06, M.dark, 0, 1.40, 0.42, inter);
+  box(0.26, 0.09, 0.05, M.dark, 0, 1.34, 0.42, inter);
+  box(0.04, 0.12, 0.04, M.chrome, 0.02, 0.82, 0.33, inter);
+  box(0.07, 0.05, 0.11, M.dark, 0.02, 0.89, 0.33, inter);
   const swGroup = new THREE.Group();
   const swTorus = new THREE.Mesh(new THREE.TorusGeometry(0.185, 0.024, 12, 36), M.dark);
   const swHub = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.03, 20), M.dark);
@@ -330,7 +342,7 @@ function buildScala() {
     spoke.rotation.z = -a;
   }
   swGroup.add(swTorus, swHub, badge);
-  swGroup.position.set(-0.37, 0.93, 0.58);
+  swGroup.position.set(0.37, 0.93, 0.58);
   swGroup.rotation.x = 0.45;
   inter.add(swGroup);
   const screenCv = document.createElement('canvas'); screenCv.width = 512; screenCv.height = 320;
@@ -341,7 +353,7 @@ function buildScala() {
   const clusCv = document.createElement('canvas'); clusCv.width = 512; clusCv.height = 200;
   const clusTex = new THREE.CanvasTexture(clusCv); clusTex.colorSpace = THREE.SRGBColorSpace;
   const clus = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.133), new THREE.MeshBasicMaterial({ map: clusTex }));
-  clus.rotation.y = Math.PI; clus.rotation.x = -0.10; clus.position.set(-0.37, 1.03, 0.71);
+  clus.rotation.y = Math.PI; clus.rotation.x = -0.10; clus.position.set(0.37, 1.03, 0.71);
   inter.add(clus);
   g.add(inter);
 
@@ -496,17 +508,17 @@ function buildScenario() {
   const half = streetW / 2;
 
   if (scenarioId === 'creneau_droite' || scenarioId === 'creneau_gauche') {
-    const side = scenarioId === 'creneau_droite' ? 1 : -1;
+    const side = scenarioId === 'creneau_droite' ? -1 : 1;
     spot = { x: side * (half - spotW / 2), z: 0, yaw: 0, w: spotW, l: spotL };
     markRect(spot.x, 0, 0, spotW, spotL);
     addNeighbor(nb, side * (half - nd.w / 2 - 0.15), spotL / 2 + 0.35 + nd.l / 2, 0, 1);
     addNeighbor(nb, side * (half - nd.w / 2 - 0.15), -spotL / 2 - 0.35 - nd.l / 2, 0, 4);
-    placePlayer(-side * streetW / 4, -28, 0, 'D');
+    placePlayer(side * streetW / 4, -28, 0, 'D');
     goalType = 'park';
   } else if (scenarioId === 'epi') {
-    const yawBay = Math.PI / 4;
+    const yawBay = -Math.PI / 4;
     const sp = (spotW + 0.4) / Math.sin(Math.PI / 4);
-    spot = { x: half - (spotL / 2) * Math.sin(Math.PI / 4), z: -(spotL / 2) * Math.cos(Math.PI / 4) + 2,
+    spot = { x: -half + (spotL / 2) * Math.sin(Math.PI / 4), z: -(spotL / 2) * Math.cos(Math.PI / 4) + 2,
              yaw: yawBay, w: spotW, l: spotL };
     markRect(spot.x, spot.z, yawBay, spotW, spotL);
     for (const k of [-2, -1, 1, 2]) {
@@ -515,34 +527,34 @@ function buildScenario() {
     placePlayer(-streetW / 4, -26, 0, 'D');
     goalType = 'park';
   } else if (scenarioId === 'bataille') {
-    spot = { x: half - spotL / 2, z: 0, yaw: Math.PI / 2, w: spotW, l: spotL };
-    markRect(spot.x, 0, Math.PI / 2, spotW, spotL);
+    spot = { x: -half + spotL / 2, z: 0, yaw: -Math.PI / 2, w: spotW, l: spotL };
+    markRect(spot.x, 0, -Math.PI / 2, spotW, spotL);
     const d1 = spotW / 2 + nd.l / 2 + 0.3, d2 = d1 + nd.l + 0.3;
-    addNeighbor(nb, half - nd.l / 2, d1, Math.PI / 2, 1);
-    addNeighbor(nb, half - nd.l / 2, -d1, Math.PI / 2, 4);
-    addNeighbor(nb, half - nd.l / 2, d2, Math.PI / 2, 2);
-    addNeighbor(nb, half - nd.l / 2, -d2, Math.PI / 2, 3);
+    addNeighbor(nb, -(half - nd.l / 2), d1, -Math.PI / 2, 1);
+    addNeighbor(nb, -(half - nd.l / 2), -d1, -Math.PI / 2, 4);
+    addNeighbor(nb, -(half - nd.l / 2), d2, -Math.PI / 2, 2);
+    addNeighbor(nb, -(half - nd.l / 2), -d2, -Math.PI / 2, 3);
     placePlayer(-streetW / 4, -24, 0, 'D');
     goalType = 'park';
   } else if (scenarioId === 'demi_tour') {
     goalType = 'uturn';
-    if (nb !== 'aucun') addNeighbor(nb, half - nd.w / 2 - 0.15, 6, 0, 2);
+    if (nb !== 'aucun') addNeighbor(nb, -(half - nd.w / 2 - 0.15), 6, 0, 2);
     placePlayer(-streetW / 4, -20, 0, 'D');
   } else if (scenarioId === 'sortie') {
     const l = Math.max(spotL, nd.l + 0.6), w = Math.max(spotW, nd.w + 0.4);
-    spot = { x: half - l / 2, z: 0, yaw: Math.PI / 2, w, l };
-    markRect(spot.x, 0, Math.PI / 2, w, l);
-    addNeighbor(nb, half - nd.l / 2, w / 2 + nd.l / 2 + 0.25, Math.PI / 2, 1);
-    addNeighbor(nb, half - nd.l / 2, -w / 2 - nd.l / 2 - 0.25, Math.PI / 2, 4);
-    placePlayer(spot.x, 0, Math.PI / 2, 'D');
+    spot = { x: -half + l / 2, z: 0, yaw: -Math.PI / 2, w, l };
+    markRect(spot.x, 0, -Math.PI / 2, w, l);
+    addNeighbor(nb, -(half - nd.l / 2), w / 2 + nd.l / 2 + 0.25, -Math.PI / 2, 1);
+    addNeighbor(nb, -(half - nd.l / 2), -w / 2 - nd.l / 2 - 0.25, -Math.PI / 2, 4);
+    placePlayer(spot.x, 0, -Math.PI / 2, 'D');
     goalType = 'exit';
   }
 
   if (wantOncoming) {
     const v = buildVehicle('berline', 5);
-    v.group.position.set(-streetW / 4, 0, 55); v.group.rotation.y = Math.PI;
+    v.group.position.set(streetW / 4, 0, 55); v.group.rotation.y = Math.PI;
     worldGroup.add(v.group);
-    oncoming = { group: v.group, x: -streetW / 4, z: 55, yaw: Math.PI,
+    oncoming = { group: v.group, x: streetW / 4, z: 55, yaw: Math.PI,
                  hw: v.dims.w / 2, hl: v.dims.l / 2, speed: 3.5 + Math.random() * 2 };
     obstacles.push(oncoming);
     collidables.push(v.bodyMesh);
@@ -557,7 +569,7 @@ function buildScenario() {
 
 /* ============ PHYSIQUE ============ */
 const keys = {};
-const ACC = 2.2, BRK = 5.5, ROLL = 0.6, HBRK = 8, VMAX = 50 / 3.6, VRMAX = 12.6 / 3.6;
+const ACC = 1.8, BRK = 6.5, ROLL = 0.8, HBRK = 9, VMAX = 30 / 3.6, VRMAX = 10 / 3.6;
 
 function carCenter2D() {
   const c = Math.cos(car.yaw), s = Math.sin(car.yaw);
@@ -566,19 +578,19 @@ function carCenter2D() {
 
 function updatePhysics(dt) {
   const up = keys.up, down = keys.down, space = keys.brake;
-  const steerTarget = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+  const steerTarget = (keys.left ? 1 : 0) - (keys.right ? 1 : 0);
 
   if (car.gear === 'D') {
     if (up) car.v += ACC * dt;
     else if (down) car.v -= BRK * dt;
     else car.v -= Math.sign(car.v) * Math.min(Math.abs(car.v) / dt, ROLL) * dt;
-    if (down && car.v <= 0.02) { car.v = 0; downHold += dt; if (downHold > 0.35) { car.gear = 'R'; downHold = 0; } } else downHold = 0;
+    if (down && car.v <= 0.02) { car.v = 0; downHold += dt; if (downHold > 0.6) { car.gear = 'R'; downHold = 0; } } else downHold = 0;
     car.v = THREE.MathUtils.clamp(car.v, 0, VMAX);
   } else if (car.gear === 'R') {
     if (down) car.v -= ACC * dt;
     else if (up) car.v += BRK * dt;
     else car.v -= Math.sign(car.v) * Math.min(Math.abs(car.v) / dt, ROLL) * dt;
-    if (up && car.v >= -0.02) { car.v = 0; upHold += dt; if (upHold > 0.35) { car.gear = 'D'; upHold = 0; } } else upHold = 0;
+    if (up && car.v >= -0.02) { car.v = 0; upHold += dt; if (upHold > 0.6) { car.gear = 'D'; upHold = 0; } } else upHold = 0;
     car.v = THREE.MathUtils.clamp(car.v, -VRMAX, 0);
   } else {
     car.v = 0;
@@ -721,11 +733,11 @@ function carFramePoint(lx, ly, lz) {
 function updateCameras(dt) {
   const c = Math.cos(car.yaw), s = Math.sin(car.yaw);
   carCenter.set(car.x + s * SPECS.rearOverhang, 0, car.z + c * SPECS.rearOverhang);
-  headYaw += ((mouseNX * 2) * 2.2 - headYaw) * Math.min(1, dt * 6);
+  headYaw += ((-mouseNX * 2) * 2.2 - headYaw) * Math.min(1, dt * 6);
   headPitch += ((-mouseNY * 2) * 0.6 - headPitch) * Math.min(1, dt * 6);
 
   if (viewMode === 'driver') {
-    const eye = carFramePoint(-0.37, 1.04, 0.30);
+    const eye = carFramePoint(0.37, 1.05, 0.30);
     driverCam.position.copy(eye);
     driverCam.rotation.y = car.yaw + Math.PI + headYaw;
     driverCam.rotation.x = headPitch;
@@ -740,14 +752,14 @@ function updateCameras(dt) {
     orbitCam.lookAt(carCenter.x, 0.9, carCenter.z);
   }
 
-  mirCamL.position.copy(carFramePoint(-(SPECS.width / 2 + 0.14), 1.04, 0.72));
-  mirCamL.rotation.y = car.yaw + Math.PI - 0.48; mirCamL.rotation.x = -0.05;
-  mirCamR.position.copy(carFramePoint(SPECS.width / 2 + 0.14, 1.04, 0.72));
-  mirCamR.rotation.y = car.yaw + Math.PI + 0.48; mirCamR.rotation.x = -0.05;
+  mirCamL.position.copy(carFramePoint(SPECS.width / 2 + 0.14, 1.04, 0.72));
+  mirCamL.rotation.y = car.yaw - 0.48; mirCamL.rotation.x = -0.05;
+  mirCamR.position.copy(carFramePoint(-(SPECS.width / 2 + 0.14), 1.04, 0.72));
+  mirCamR.rotation.y = car.yaw + 0.48; mirCamR.rotation.x = -0.05;
   mirCamI.position.copy(carFramePoint(0, 1.18, 0.72));
-  mirCamI.rotation.y = car.yaw + Math.PI; mirCamI.rotation.x = -0.03;
+  mirCamI.rotation.y = car.yaw; mirCamI.rotation.x = -0.03;
   rearCam.position.copy(carFramePoint(0, 1.05, -2.02));
-  rearCam.rotation.y = car.yaw + Math.PI; rearCam.rotation.x = -0.10;
+  rearCam.rotation.y = car.yaw; rearCam.rotation.x = -0.10;
 
   sun.position.set(carCenter.x + 18, 30, carCenter.z + 10);
   sun.target.position.set(carCenter.x, 0, carCenter.z);
@@ -1034,7 +1046,7 @@ function ackermann(delta) {
   const R = WB / t;
   const inner = Math.atan(WB / (R - SPECS.track / 2));
   const outer = Math.atan(WB / (R + SPECS.track / 2));
-  return delta > 0 ? [inner, outer] : [-outer, -inner];
+  return delta < 0 ? [inner, outer] : [-outer, -inner];
 }
 
 let last = performance.now(), sensorClock = 0, uiClock = 0;
@@ -1059,11 +1071,11 @@ function animate(now) {
   scala.group.position.set(car.x, 0, car.z);
   scala.group.rotation.y = car.yaw;
   const [dR, dL] = ackermann(car.delta);
-  scala.wheels.steer[0].rotation.y = dL;
-  scala.wheels.steer[1].rotation.y = dR;
+  scala.wheels.steer[0].rotation.y = dR;
+  scala.wheels.steer[1].rotation.y = dL;
   const spin = car.v / SPECS.wheelR * dt;
   for (const w of scala.wheels.spin) w.rotation.x += spin;
-  scala.swGroup.rotation.z = car.delta * 11;
+  scala.swGroup.rotation.z = -car.delta * 11;
 
   uiClock += dt;
   if (uiClock > 0.08) {
